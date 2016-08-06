@@ -28,6 +28,9 @@ func NewPool(createFunc CreateFunc, maxIdel int) *Pool {
 }
 
 func (p *Pool) Get() (interface{}, error) {
+	if p.MaxIdle <= 0 {
+		goto CREATE_NEW
+	}
 
 	p.mutex.Lock()
 
@@ -40,6 +43,7 @@ func (p *Pool) Get() (interface{}, error) {
 	}
 	p.mutex.Unlock()
 
+CREATE_NEW:
 	if newItem, err := p.createFunc(); err != nil {
 		return nil, err
 	} else {
@@ -57,6 +61,9 @@ func (p *Pool) checkItem(item interface{}) (interface{}, error) {
 
 func (p *Pool) Put(item interface{}) {
 
+	if p.MaxIdle <= 0 {
+		return
+	}
 	p.mutex.Lock()
 	if nil == item {
 		p.mutex.Unlock()
