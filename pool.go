@@ -8,8 +8,8 @@ import (
 type CreateFunc func() (interface{}, error)
 
 type Pool struct {
-	MaxIdle    int
-	CheckOnGet func(item interface{}) error
+	MaxIdle int
+	Checker func(item interface{}) error
 
 	idleList   *list.List
 	mutex      sync.Mutex
@@ -21,7 +21,7 @@ func NewPool(createFunc CreateFunc, maxIdel int) *Pool {
 		MaxIdle:    maxIdel,
 		createFunc: createFunc,
 		idleList:   list.New(),
-		CheckOnGet: func(item interface{}) error {
+		Checker: func(item interface{}) error {
 			return nil
 		},
 	}
@@ -47,12 +47,12 @@ CREATE_NEW:
 	if newItem, err := p.createFunc(); err != nil {
 		return nil, err
 	} else {
-		return p.checkItem(newItem)
+		return newItem, nil
 	}
 }
 
 func (p *Pool) checkItem(item interface{}) (interface{}, error) {
-	if err := p.CheckOnGet(item); err != nil {
+	if err := p.Checker(item); err != nil {
 		return nil, err
 	} else {
 		return item, nil

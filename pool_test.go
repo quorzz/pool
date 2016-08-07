@@ -63,12 +63,14 @@ func TestPool(t *testing.T) {
 
 }
 
-func TestCheckOnGet(t *testing.T) {
+func TestChecker(t *testing.T) {
 	p := NewPool(createFunc, 3)
 
-	p.CheckOnGet = checkOnGetFunc
+	item, err := p.Get()
+	p.Put(item)
 
-	_, err := p.Get()
+	p.Checker = checkOnGetFunc
+	item, err = p.Get()
 
 	if err != checkError {
 		t.Error(err)
